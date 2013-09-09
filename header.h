@@ -5,7 +5,7 @@ using namespace std;
 #define NUMMAXLEN 5
 #define NUMKW 13
 #define NUMOP 12
-#define LENTOKEN 10
+#define LENTOKEN 15
 enum element{
 	t_null,			//0 null
 	t_ident,		//1 identifier
@@ -37,11 +37,12 @@ enum element{
 	t_const,		//27 const
 	t_var,			//28 var
 	t_program,		//29 program
-	t_procedure,	//30 procedure
+	t_procedure,		//30 procedure
 	t_space,		//31 space
 	t_for,			//31 for
 	t_else, 		//32 else
-	t_error			//33 error
+	t_error,		//33 error
+	t_eof			//34 EOF
 };
 char ch;	//last character read
 int sym;	//last symbol read
