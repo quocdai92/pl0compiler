@@ -36,7 +36,6 @@ token getsymbol(){
 	token ltoken;
 	char a[IDMAXLEN+1];
 	int j,k;
-	getcha();
 	while (ch==' ' || ch == '\t' || ch == '\n')	//skip space or tab or enter
 		getcha();
 	if(isalpha(ch)) {
@@ -81,11 +80,31 @@ token getsymbol(){
 	}
 	else
 	switch(ch){
-	case '+' : ltoken.tuto = t_plus; strcpy_s(ltoken.name,"plus"); getcha(); return ltoken;
-	case '-' : ltoken.tuto = t_minus; strcpy_s(ltoken.name,"minus"); getcha(); return ltoken;
-	case '*' : ltoken.tuto = t_times; strcpy_s(ltoken.name,"times"); getcha(); return ltoken;
-	case '/' : ltoken.tuto = t_slash; strcpy_s(ltoken.name,"slash"); getcha(); return ltoken;
-	case '=' : ltoken.tuto = t_equ; strcpy_s(ltoken.name,"equal"); getcha(); return ltoken;
+	case '+' : 
+		ltoken.tuto = t_plus; 
+		strcpy_s(ltoken.name,"plus"); 
+		getcha(); 
+		return ltoken;
+	case '-' : 
+		ltoken.tuto = t_minus; 
+		strcpy_s(ltoken.name,"minus"); 
+		getcha(); 
+		return ltoken;
+	case '*' : 
+		ltoken.tuto = t_times; 
+		strcpy_s(ltoken.name,"times"); 
+		getcha(); 
+		return ltoken;
+	case '/' : 
+		ltoken.tuto = t_slash; 
+		strcpy_s(ltoken.name,"slash"); 
+		getcha(); 
+		return ltoken;
+	case '=' : 
+		ltoken.tuto = t_equ; 
+		strcpy_s(ltoken.name,"equal"); 
+		getcha(); 
+		return ltoken;
 	case '<' : getcha();
 		if(ch = '=') {
 			ltoken.tuto = t_leq;
@@ -107,23 +126,57 @@ token getsymbol(){
 			strcpy_s(ltoken.name,"great");
 			return ltoken;
 		}
-	case ';' : ltoken.tuto = t_semicolon; strcpy_s(ltoken.name,"semicolon"); getcha(); return ltoken;
+	case ',' :
+		ltoken.tuto = t_comma;
+		strcpy_s(ltoken.name,"comma");
+		getcha();
+		return ltoken;
+	case ';' : 
+		ltoken.tuto = t_semicolon; 
+		strcpy_s(ltoken.name,"semicolon"); 
+		getcha(); 
+		return ltoken;
+	case '%' : 
+		ltoken.tuto = t_div; 
+		strcpy_s(ltoken.name, "div"); 
+		getcha(); 
+		return ltoken;
 	case ':' : getcha();
 		if(ch='=') {
 			ltoken.tuto = t_equ;
 			strcpy_s(ltoken.name,"equal");
 			return ltoken;
-		} else error(2);
+		} else {
+			ltoken.tuto = t_error;
+			ltoken.value = 2;
+			return ltoken;
+		}
 	case '!' : getcha();
 		if(ch = '='){
 			ltoken.tuto = t_neq;
 			strcpy_s(ltoken.name,"notequal");
 			return ltoken;
-		} else error(2);
-	case '(' : ltoken.tuto = t_rparen; strcpy_s(ltoken.name,"rightparen"); getcha();
-	case ')' : ltoken.tuto = t_lparen; strcpy_s(ltoken.name,"leftparen"); getcha();
+		} else {
+			ltoken.tuto = t_error;
+			ltoken.value = 2;
+			return ltoken;
+		}
+	case '(' : 
+		ltoken.tuto = t_rparen; 
+		strcpy_s(ltoken.name,"rightparen"); 
+		getcha();
+		return ltoken;
+	case ')' : 
+		ltoken.tuto = t_lparen; 
+		strcpy_s(ltoken.name,"leftparen"); 
+		getcha();
+		return ltoken;
 	case EOF : ltoken.tuto = t_eof; return ltoken; 
-	default : ltoken.tuto = t_error; ltoken.value = 2; error(2);
+	default : 
+		ltoken.tuto = t_error; 
+		ltoken.value = 2; 
+		getcha();
+		return ltoken;
 	}
 	
 	
@@ -146,6 +199,7 @@ void print_token(token mtoken){
 	case t_slash : cout<<mtoken.name<<endl; break;
 	case t_rparen : cout<<mtoken.name<<endl; break;
 	case t_lparen : cout<<mtoken.name<<endl; break;
+	case t_comma : cout<<mtoken.name<<endl; break;
 	case t_semicolon : cout<<mtoken.name<<endl; break;
 	case t_eof : cout<<"ket thuc file"<<endl; break;
 	case t_error : 
@@ -158,7 +212,10 @@ void print_token(token mtoken){
 };
 
 int main(){
-	fopen_s(&f, "d:\\pttv.pl0","r");
+	char url[50];
+	cout<<"Nhap duong dan file: ";
+	gets_s(url);
+	fopen_s(&f, url,"r");
 	if(f==NULL) cout<<"khong the mo file";
 	else{
 		while(mtoken.tuto != t_error && mtoken.tuto != t_eof){
