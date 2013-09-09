@@ -1,0 +1,10 @@
+var
+  countdown234;
+begin
+  countdown := 103457689;
+  while countdown >= 0 do
+  begin
+    write countdown;
+    countdown := countdown - 1;
+  end
+end
