@@ -40,12 +40,15 @@ token getsymbol(){
 			}else {
 					ltoken.tuto = t_error;
 					error(0);
+					getcha();
 			}
 		}while(isalpha(ch)||isdigit(ch));
-		a[j] = 0;
-		strcpy_s(ltoken.name, a);
-		ltoken.tuto = t_ident;
-		return ltoken;
+		if(ltoken.tuto !=t_error){
+			a[j] = 0;
+			strcpy_s(ltoken.name, a);
+			ltoken.tuto = t_ident;
+			return ltoken;
+		}
 	} else
 	if(isdigit(ch)){
 		//tu to la so
@@ -106,7 +109,8 @@ token getsymbol(){
 		} else error(2);
 	case '(' : ltoken.tuto = t_rparen; strcpy_s(ltoken.name,"rightparen"); getcha();
 	case ')' : ltoken.tuto = t_lparen; strcpy_s(ltoken.name,"leftparen"); getcha();
-		default : error(2);
+	case EOF : ltoken.tuto = t_eof; return ltoken; 
+	default : ltoken.tuto = t_error; error(2);
 	}
 	
 	
@@ -130,6 +134,8 @@ void print_token(token mtoken){
 	case t_rparen : cout<<mtoken.name<<endl; break;
 	case t_lparen : cout<<mtoken.name<<endl; break;
 	case t_semicolon : cout<<mtoken.name<<endl; break;
+	case t_eof : cout<<"ket thuc file"<<endl; break;
+	case t_error : error(2); break;
 	}
 };
 
@@ -137,10 +143,10 @@ int main(){
 	fopen_s(&f, "d:\\pttv.pl0","r");
 	if(f==NULL) cout<<"khong the mo file";
 	else{
-		do{
+		while(mtoken.tuto != t_error && mtoken.tuto != t_eof){
 			mtoken = getsymbol();
 			print_token(mtoken);
-		}while(mtoken.tuto != t_error);
+		};
 	}
 	getchar();
 }
