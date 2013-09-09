@@ -1,7 +1,7 @@
 var
-  countdown234;
+  countdown;
 begin
-  countdown := 103457689;
+  countdown := 10;
   while countdown >= 0 do
   begin
     write countdown;
