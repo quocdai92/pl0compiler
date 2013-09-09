@@ -6,12 +6,11 @@ void getcha(){
 };
 bool get_keyword(char* str){
 	for(int i=0; i<NUMKW; i++){
-		if(strcmp(str, keyword[i])){
-			cout<<"ident la keyword"<<endl;
+		if(strcmp(str, keyword[i])==0){
 			return 1;
 		}
-		else return 0;
 	}
+	return 0;
 }
 void error(int k){
 	switch(k){
@@ -116,8 +115,8 @@ void print_token(token mtoken){
 	switch(mtoken.tuto){
 	case t_ident : if(get_keyword(mtoken.name)){
 						cout<<mtoken.name<<"\n"; 
-						break;
 				   } else cout<<"ident("<<mtoken.name<<")\n";
+		break;
 	case t_number: cout<<"number("<<mtoken.value<<")\n"; break;
 	case t_equ : cout<<mtoken.name<<endl; break;
 	case t_les : cout<<mtoken.name<<endl; break;
