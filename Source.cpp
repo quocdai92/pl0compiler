@@ -1,8 +1,17 @@
 #include "Header.h"
 #include <string.h>
 #include <iostream>
+
+char chuanhoa(char c){
+	if (c>=65 && c<= 90){
+		c = c + 32;
+		return c;
+	}
+	else return c;
+};
 void getcha(){
 	ch= fgetc(f);
+	ch = chuanhoa(ch);
 };
 bool get_keyword(char* str){
 	for(int i=0; i<NUMKW; i++){
@@ -14,11 +23,12 @@ bool get_keyword(char* str){
 }
 void error(int k){
 	switch(k){
-	case 0 : cout<<"loi kich thuoc ident";
+	case 0 : 
+		cout<<"loi kich thuoc ident"<<endl; break;
 	case 1 : 
-	cout<<" loi kich thuoc number!";
+		cout<<" loi kich thuoc number!"<<endl; break;
 	case 2 : 
-		cout<< "loi khong ton tai tu vung";
+		cout<< "loi khong ton tai tu vung"<<endl; break;
 	}
 };
 token getsymbol(){
@@ -26,7 +36,7 @@ token getsymbol(){
 	token ltoken;
 	char a[IDMAXLEN+1];
 	int j,k;
-	ch = fgetc(f);
+	getcha();
 	while (ch==' ' || ch == '\t' || ch == '\n')	//skip space or tab or enter
 		getcha();
 	if(isalpha(ch)) {
@@ -38,7 +48,9 @@ token getsymbol(){
 				getcha();
 				j++;
 			}else {
+				//iden co chieu dai > chieu dai cho phep
 					ltoken.tuto = t_error;
+					ltoken.value = 0;
 					error(0);
 					getcha();
 			}
@@ -48,7 +60,7 @@ token getsymbol(){
 			strcpy_s(ltoken.name, a);
 			ltoken.tuto = t_ident;
 			return ltoken;
-		}
+		} else return ltoken;
 	} else
 	if(isdigit(ch)){
 		//tu to la so
@@ -60,6 +72,7 @@ token getsymbol(){
 		}while(isdigit(ch));
 		if(k>NUMMAXLEN){
 			ltoken.tuto = t_error;
+			ltoken.value = 1;
 			error(1);
 		}
 		ltoken.value = num;
@@ -110,7 +123,7 @@ token getsymbol(){
 	case '(' : ltoken.tuto = t_rparen; strcpy_s(ltoken.name,"rightparen"); getcha();
 	case ')' : ltoken.tuto = t_lparen; strcpy_s(ltoken.name,"leftparen"); getcha();
 	case EOF : ltoken.tuto = t_eof; return ltoken; 
-	default : ltoken.tuto = t_error; error(2);
+	default : ltoken.tuto = t_error; ltoken.value = 2; error(2);
 	}
 	
 	
@@ -135,7 +148,12 @@ void print_token(token mtoken){
 	case t_lparen : cout<<mtoken.name<<endl; break;
 	case t_semicolon : cout<<mtoken.name<<endl; break;
 	case t_eof : cout<<"ket thuc file"<<endl; break;
-	case t_error : error(2); break;
+	case t_error : 
+		switch(mtoken.value){
+			case 0 : error(0); break;
+			case 1 : error(1); break;
+			case 2: error(2); break;
+		} break;
 	}
 };
 
