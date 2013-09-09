@@ -23,9 +23,9 @@ enum element{
 	t_geq,			//13 >=
 	t_lparen,		//14 (
 	t_rparen,		//15 )
-	t_comma,		//16 ,
-	t_dot,			//17 .
-	t_semicolon,	//18 ;
+	t_div,			//16 %
+	t_comma,		//17 ,
+	t_semicolon,		//18 ;
 	t_becomes,		//19 :=
 	t_begin,		//20 begin	
 	t_end,			//21 end
@@ -39,17 +39,14 @@ enum element{
 	t_program,		//29 program
 	t_procedure,		//30 procedure
 	t_space,		//31 space
-	t_for,			//31 for
-	t_else, 		//32 else
-	t_error,		//33 error
-	t_eof			//34 EOF
+	t_for,			//32 for
+	t_else, 		//33 else
+	t_error,		//34 error
+	t_eof			//35 EOF
 };
-char ch;	//last character read
-int sym;	//last symbol read
+char ch = ' ';		//last character read
 char id[IDMAXLEN+1];	//last identifier read
-int num;	//last numer read
-int count;	//character count
-int i=0;		// pointer
+int num;		//last numer read
 FILE* f;
 char* keyword[NUMKW+1] = {
 	"", "begin", "program", "end", "if", "then", "while",
@@ -60,15 +57,15 @@ int tkeyword[NUMKW+1] = {
 	t_do, t_call, t_const, t_var, t_procedure, t_for, t_else
 };
 char operation[NUMOP+1] = {
-	' ', '+', '-', '*', '/', '<', '>', '=', '(', ')', ',', '.', ';'
+	' ', '+', '-', '*', '/', '<', '>', '=', '(', ')', '%', ',', ';'
 };
 int toperation[NUMOP+1] = {
 	t_null, t_plus, t_minus, t_times, t_slash, t_les, t_gtr, t_equ,
-	t_lparen, t_rparen, t_comma, t_dot, t_semicolon
+	t_lparen, t_rparen, t_div, t_comma, t_semicolon
 };
-typedef struct token{
+typedef struct {
 	enum element tuto;
 	char name[LENTOKEN];
 	int value;
-};
+}token;
 token mtoken;
