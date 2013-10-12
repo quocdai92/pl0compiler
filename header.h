@@ -3,7 +3,7 @@
 using namespace std;
 #define IDMAXLEN 10
 #define NUMMAXLEN 6
-#define NUMOFIDENT
+#define NUMIDENT 10
 #define NUMKW 14
 #define NUMOP 15
 #define LENTOKEN 20
@@ -28,7 +28,7 @@ enum element{
 	t_rbrave,		//17 ]
 	t_div,			//18 %
 	t_comma,		//19 ,
-	t_semicolon,		//20 ;
+	t_semicolon,	//20 ;
 	t_assign,		//12 :=
 	t_begin,		//22 begin	
 	t_end,			//23 end
@@ -40,33 +40,50 @@ enum element{
 	t_const,		//29 const
 	t_var,			//30 var
 	t_program,		//31 program
-	t_procedure,		//32 procedure
+	t_procedure,	//32 procedure
 	t_for,			//33 for
 	t_else, 		//34 else
 	t_error,		//35 error
 	t_eof,			//36 EOF
 	t_to,			//37 to
-	t_period		//38 .
+	t_period,		//38 .
+	t_hoicham,		// 39 ?
+	t_haicham		// 40 :
 };
-enum id_type{
-	id_constance,
-	id_keyword,
-	id_variable
-};
+
 char ch = ' ';			//last character read
 char id[IDMAXLEN+1];	//last identifier read
 int num;				//last number read
+int line = 1;				//last line read
 FILE* f;
+
 char* keyword[NUMKW+1] = {
-	"", "begin", "program", "end", "if", "then", "while",
-	"do", "call", "const", "var", "procedure", "for", "else"
+	"begin", "program", "end", "if", "then", "while",
+	"do", "call", "const", "var", "procedure", "for", "else", "to"
 };
 typedef struct {
-	enum element tuto;
+	enum element type;
 	char name[LENTOKEN];
 	int value;
-	enum id_type type;
 }token;
 token mtoken;
 token listtoken[100];
 int numident = 0;
+enum atribute{
+	id_constant,
+	id_variable,
+	id_subproc
+};
+typedef struct {
+	char name[LENTOKEN];
+	enum atribute id_atribute;
+} ident;
+ident mident;
+typedef struct table{
+	char name[LENTOKEN];
+	ident id[NUMIDENT];
+	table *father_table;
+	int tx;
+};
+
+//table root;
