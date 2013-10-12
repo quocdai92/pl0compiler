@@ -1,6 +1,102 @@
 #include "Header.h"
 #include <string.h>
 #include <iostream>
+#include <string>
+#include <stdlib.h>
+#include "SemanticType.h"
+
+
+///******=========phan tich ngu nghia======================//
+int index = 0;
+ItemTable* itableNow;
+
+ItemTable* InitItemTable() 
+{
+	ItemTable *it = new ItemTable;
+	//it->Size = 0;
+	it->Tx = 0;
+	it->PtrParent = NULL;
+	index ++;
+	return it;
+}
+ItemTable* CreateTable(){
+	ItemTable *itt = new ItemTable;
+	itt->PtrParent = itableNow;
+	itt->Tx = 0;
+	index++;
+	return itt;
+}
+void DelTable(ItemTable *itable){
+	itable->PtrParent = NULL;
+	for(int i = 0; i<itable->Tx -1; i++) {
+//		itable->ListItem[i]  = NULL;
+	}
+}
+ItemSym* InitItemSym() {
+	ItemSym *its = new ItemSym;
+	its->Name = "";
+	its->Property = None;
+	//its->Size = 0;
+	return its;
+}
+
+void AddItemToTable(ItemSym *ist, ItemTable *itable) 
+{
+	itable->ListItem[itable->Tx] = ist;
+	itable->Tx++;
+	//itable->Size += ist.Size;
+}
+
+bool CheckIdent(string name, ItemTable *itable) 
+{
+	for(int i=0; i<itable->Tx; ++i) 
+	{
+		if(name == itable->ListItem[i]->Name && 
+			itable->ListItem[i]->Property != SubProc &&
+			itable->ListItem[i]->Property != None) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CheckArray(string name, ItemTable *itable) 
+{
+	for(int i=0; i<itable->Tx; ++i) 
+	{
+		if(name == itable->ListItem[i]->Name && 
+			itable->ListItem[i]->Property == Array) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CheckConstant(string name, ItemTable *itable) {
+	for(int i=0; i<itable->Tx; ++i) 
+	{
+		if(name == itable->ListItem[i]->Name && 
+			itable->ListItem[i]->Property == Constant) {
+			return true;
+		}
+	}
+	return false;
+}
+bool CheckProcedure(string name, ItemTable *itable){
+	for (int i = 0; i<itable->Tx-1; i++){
+		//cout<<"nguyendai";
+		if(name == itable->ListItem[i]->Name &&
+			itable->ListItem[i]->Property == SubProc){
+				return true;			//procedure da ton tai trong bang
+		}
+		else {
+			itableNow = itable->PtrParent;
+			//CheckProcedure(name,itableNow);
+		}
+	}
+	return false;
+}
+///***end ptnn
 
 /************PHAN TICH TU VUNG***********/
 char chuanhoa(char c){
@@ -22,95 +118,57 @@ bool get_keyword(char* str){
 	}
 	return 0;
 };
-void addtoken(token ltoken){
-	listtoken[numident++] = ltoken;
-}
-void error(int k){
-	switch(k){
-	case 0 : 
-		cout<<"loi kich thuoc ident"<<endl; break;
-	case 1 : 
-		cout<<" loi kich thuoc number!"<<endl; break;
-	case 2 : 
-		cout<< "loi khong ton tai tu vung"<<endl; break;
-	case 3:
-		cout<< "loi thieu toan tu gan"<<endl; break;
-	case 4: 
-		cout<< "thieu dau ] trong bieu thuc"<<endl; break;
-	case 5:
-		cout<< "thieu dau ) trong bieu thuc"<<endl; break;
-	case 6:
-		cout<<"thieu toan tu so sanh"<<endl; break;
-	case 7:
-		cout<< "thieu End"<<endl; break;
-	case 8:
-		cout<< "thieu Then"<<endl;break;
-	case 9:
-		cout<< "thieu tu khoa Do"<<endl; break;
-	case 10:
-		cout<< "thieu tu khoa To"<<endl;break;
-	case 11: 
-		cout<< "thieu Ident"<<endl;break;
-	case 12: 
-		cout<< "loi block"<<endl; break;
-	case 13:
-		cout<< "thieu ;"<<endl; break;
-	case 14:
-		cout<< "thieu number"<<endl; break;
-	case 15:
-		cout<< "loi factor"<<endl; break;
-	case 16:
-		cout<< "loi expression"<<endl;break;
-	case 17:
-		cout<< "thieu dau . ket thuc ctrinh"<<endl; break;
-	case 18:
-		cout<< "thieu ten chuong trinh"<<endl; break;
-	case 19: 
-		cout<< "thieu tu khoa program"<<endl;break;
-	}
+void error(char* str){
+	cout<<str<<" Dong "<<line<<endl;
+	getchar();
+	exit(0);
 };
 token gettoken(){
 	//lấy ra từ tố
 	token ltoken;
 	char a[IDMAXLEN+1];
 	int j,k;
+	if(ch == '\n') line++;
+	//cout<<mtoken.name<<line<<endl;
 	while (ch==' ' || ch == '\t' || ch == '\n')	//skip space or tab or enter
 		getcha();
 	if(isalpha(ch)) {
 		//tu to la ident
 		j = 0;
 		do{
-			if(j<IDMAXLEN){
+			if(j<=IDMAXLEN){
 				a[j] = ch;
 				getcha();
 				j++;
 			}else {
 				//iden co chieu dai > chieu dai cho phep
-					ltoken.tuto = t_error;
-					ltoken.value = 0;
-					error(0);
+					ltoken.type = t_ident;
+					//ltoken.value = 0;
+					//error(0);
 					getcha();
+					a[j] = 0;
 			}
 		}while(isalpha(ch)||isdigit(ch));
-		if(ltoken.tuto !=t_error){
+		if(ltoken.type !=t_error){
 			a[j] = 0;
 			strcpy_s(ltoken.name, a);
-			//ltoken.tuto = t_ident;
+			//cout<<ltoken.name;
 			if(get_keyword(ltoken.name)){
-				if(strcmp(ltoken.name,"begin")==0) ltoken.tuto = t_begin;
-				else if(strcmp(ltoken.name,"end")==0) ltoken.tuto = t_end;
-				else if(strcmp(ltoken.name,"program")==0) ltoken.tuto = t_program;
-				else if(strcmp(ltoken.name,"procedure")==0) ltoken.tuto = t_procedure;
-				else if(strcmp(ltoken.name,"while")==0) ltoken.tuto = t_while;
-				else if(strcmp(ltoken.name,"if")==0) ltoken.tuto = t_if;
-				else if(strcmp(ltoken.name,"then")==0) ltoken.tuto = t_then;
-				else if(strcmp(ltoken.name,"do")==0) ltoken.tuto = t_do;
-				else if(strcmp(ltoken.name,"else")==0) ltoken.tuto = t_else;
-				else if(strcmp(ltoken.name,"call")==0) ltoken.tuto = t_call;
-				else if(strcmp(ltoken.name,"const")==0) ltoken.tuto = t_const;
-				else if(strcmp(ltoken.name,"var")==0) ltoken.tuto = t_var;
-				else if(strcmp(ltoken.name,"for")==0) ltoken.tuto = t_for;
-			} else ltoken.tuto = t_ident;
+				if(strcmp(ltoken.name,"begin")==0) ltoken.type = t_begin;
+				else if(strcmp(ltoken.name,"end")==0) ltoken.type = t_end;
+				else if(strcmp(ltoken.name,"program")==0) ltoken.type = t_program;
+				else if(strcmp(ltoken.name,"procedure")==0) ltoken.type = t_procedure;
+				else if(strcmp(ltoken.name,"while")==0) ltoken.type = t_while;
+				else if(strcmp(ltoken.name,"if")==0) ltoken.type = t_if;
+				else if(strcmp(ltoken.name,"then")==0) ltoken.type = t_then;
+				else if(strcmp(ltoken.name,"do")==0) ltoken.type = t_do;
+				else if(strcmp(ltoken.name,"else")==0) ltoken.type = t_else;
+				else if(strcmp(ltoken.name,"call")==0) ltoken.type = t_call;
+				else if(strcmp(ltoken.name,"const")==0) ltoken.type = t_const;
+				else if(strcmp(ltoken.name,"var")==0) ltoken.type = t_var;
+				else if(strcmp(ltoken.name,"for")==0) ltoken.type = t_for;
+				else if(strcmp(ltoken.name, "to")==0) ltoken.type = t_to;
+			} else ltoken.type = t_ident;
 			//cout<<ltoken.name<<endl;
 			return ltoken;
 		} else return ltoken;
@@ -125,132 +183,132 @@ token gettoken(){
 		}while(isdigit(ch));
 		if(k>NUMMAXLEN){
 			//so > 6 chu so
-			ltoken.tuto = t_error;
+			ltoken.type = t_error;
 			ltoken.value = 1;
-			error(1);
+			error("so lon hon 6 chu so");
 		}
 		ltoken.value = num;
-		ltoken.tuto = t_number;
+		ltoken.type = t_number;
 		return ltoken;
 	}
 	else
 	switch(ch){
 	case '+' : 
-		ltoken.tuto = t_plus; 
+		ltoken.type = t_plus; 
 		strcpy_s(ltoken.name,"plus"); 
 		getcha(); 
 		return ltoken;
 	case '-' : 
-		ltoken.tuto = t_minus; 
+		ltoken.type = t_minus; 
 		strcpy_s(ltoken.name,"minus"); 
 		getcha(); 
 		return ltoken;
 	case '*' : 
-		ltoken.tuto = t_times; 
+		ltoken.type = t_times; 
 		strcpy_s(ltoken.name,"times"); 
 		getcha(); 
 		return ltoken;
 	case '/' : 
-		ltoken.tuto = t_slash; 
+		ltoken.type = t_slash; 
 		strcpy_s(ltoken.name,"slash"); 
 		getcha(); 
 		return ltoken;
 	case '=' : getcha();
-		ltoken.tuto = t_equ; 
+		ltoken.type = t_equ; 
 		strcpy_s(ltoken.name,"equal"); 
 		return ltoken;
 	case '<' : getcha();
-		if(ch = '=') {
-			ltoken.tuto = t_leq;
+		if(ch == '=') {
+			getcha();
+			ltoken.type = t_leq;
 			strcpy_s(ltoken.name,"lessequal");
 			return ltoken;
 		}else {
-			ltoken.tuto = t_les; 
+			ltoken.type = t_les; 
 			strcpy_s(ltoken.name,"less");
 			return ltoken;
 		}
 		
 	case '>' : getcha();
-		if(ch = '=') {
+		if(ch == '=') {
 			getcha();
-			ltoken.tuto = t_geq;
+			ltoken.type = t_geq;
 			strcpy_s(ltoken.name,"greatequal");
 			return ltoken;
 		}else {
-			ltoken.tuto = t_gtr; 
+			ltoken.type = t_gtr; 
 			strcpy_s(ltoken.name,"great");
 			return ltoken;
 		}
 	case '.' : getcha();
-		ltoken.tuto = t_period;
+		ltoken.type = t_period;
 		strcpy_s(ltoken.name, "period");
 		return ltoken;
 	case ',' : getcha();
-		ltoken.tuto = t_comma;
+		ltoken.type = t_comma;
 		strcpy_s(ltoken.name,"comma");
 		return ltoken;
 	case ';' : 	getcha(); 
-		ltoken.tuto = t_semicolon; 
+		ltoken.type = t_semicolon; 
 		strcpy_s(ltoken.name,"semicolon"); 
 		return ltoken;
 	case '%' : getcha(); 
-		ltoken.tuto = t_div; 
+		ltoken.type = t_div; 
 		strcpy_s(ltoken.name, "div"); 
 		return ltoken;
 	case ':' : getcha();
-		if(ch='=') {
+		if(ch=='=') {
 			getcha();
-			ltoken.tuto = t_assign;
+			ltoken.type = t_assign;
 			strcpy_s(ltoken.name,"assign");
 			return ltoken;
 		} else {
-			ltoken.tuto = t_error;
-			ltoken.value = 2;
+			ltoken.type = t_haicham;
+			strcpy_s(ltoken.name,"haicham");
 			return ltoken;
 		}
 	case '!' : getcha();
-		if(ch = '='){
+		if(ch == '='){
 			getcha();
-			ltoken.tuto = t_neq;
+			ltoken.type = t_neq;
 			strcpy_s(ltoken.name,"notequal");
 			return ltoken;
 		} else {
-			ltoken.tuto = t_error;
+			ltoken.type = t_error;
 			ltoken.value = 2;
 			return ltoken;
 		}
-	case '(' : 
-		ltoken.tuto = t_rparen; 
-		strcpy_s(ltoken.name,"rightparen"); 
-		getcha();
-		return ltoken;
-	case ')' : 
-		ltoken.tuto = t_lparen; 
+	case '(' : 	getcha();
+		ltoken.type = t_lparen; 
 		strcpy_s(ltoken.name,"leftparen"); 
-		getcha();
 		return ltoken;
-	case '[' :
-		ltoken.tuto = t_lbrave;
+	case ')' : 	getcha();
+		ltoken.type = t_rparen; 
+		strcpy_s(ltoken.name,"rightparen"); 
+		return ltoken;
+	case '[' : getcha();
+		ltoken.type = t_lbrave;
 		strcpy_s(ltoken.name, "leftbrave");
-		getcha();
 		return ltoken;
-	case ']' :
-		ltoken.tuto = t_rbrave;
+	case ']' : getcha();
+		ltoken.type = t_rbrave;
 		strcpy_s(ltoken.name, "rightbrave");
-		getcha();
 		return ltoken;
-	case EOF : ltoken.tuto = t_eof; return ltoken; 
-	default : 
-		ltoken.tuto = t_error; 
-		ltoken.value = 2; 
-		getcha();
+	case '?' : getcha();
+		ltoken.type = t_hoicham;
+		strcpy_s(ltoken.name, "hoicham");
+		return ltoken;
+	case EOF : ltoken.type = t_eof; return ltoken; 
+	default : getcha();
+		ltoken.type = t_error; 
+		error("ky hieu la");
 		return ltoken;
 	}
 	
 	
 };
 void print_token(token mtoken){
-	switch(mtoken.tuto){
+	switch(mtoken.type){
 	case t_ident :  cout<<"ident("<<mtoken.name<<")\n"; break;
 	case t_number: cout<<"number("<<mtoken.value<<")\n"; break;
 	case t_equ : cout<<mtoken.name<<endl; break;
@@ -267,18 +325,11 @@ void print_token(token mtoken){
 	case t_lparen : cout<<mtoken.name<<endl; break;
 	case t_comma : cout<<mtoken.name<<endl; break;
 	case t_semicolon : cout<<mtoken.name<<endl; break;
-	//case t_eof : cout<<"ket thuc file"<<endl; break;
-	case t_error : 
-		switch(mtoken.value){
-			case 0 : error(0); break;
-			case 1 : error(1); break;
-			case 2: error(2); break;
-		} break;
 	}
 };
-//********phan tich cu phap*********//////
+//==========PHAN TICH CU PHAP===============//////
 void nexttoken(){
-	if(mtoken.tuto != t_error && mtoken.tuto != t_eof){
+	if(mtoken.type != t_error && mtoken.type != t_eof){
 	mtoken = gettoken();
 	}else
 	{
@@ -287,57 +338,52 @@ void nexttoken(){
 };
 void term();
 void expression(){
-	if(mtoken.tuto == t_plus || mtoken.tuto == t_minus)
+	if(mtoken.type == t_plus || mtoken.type == t_minus)
 		nexttoken();
 	term();
-	while(mtoken.tuto == t_plus || mtoken.tuto == t_minus){
+	while(mtoken.type == t_plus || mtoken.type == t_minus){
 		nexttoken();
 		term();
 	}
-	//else									// loi khong phai expression
-	//{
-		//mtoken.tuto = t_error;
-		//mtoken.value = 16;
-		//error(16);
-	//}
 };
 void factor(){
 	// phan tich nhan tu
-	if(mtoken.tuto == t_ident){
+	if(mtoken.type == t_ident){
+		//checkIdent()
 		nexttoken();
-		if(mtoken.tuto == t_lbrave){
+		if(mtoken.type == t_lbrave){
+			nexttoken();
 			expression();
-			if(mtoken.tuto == t_rbrave)
+			if(mtoken.type == t_rbrave)
 			nexttoken();
 			else{
-				mtoken.tuto = t_error;
-				mtoken.value = 4;
-				error(4);			// loi thieu dau ']' trong bieu thuc
+				mtoken.type = t_error;
+				error("thieu dau ]");			// loi thieu dau ']' trong bieu thuc
 			}
 		}
+
 	}else 
-		if(mtoken.tuto == t_number){
+		if(mtoken.type == t_number){
 			nexttoken();
 		}
 	else 
-	if(mtoken.tuto == t_lparen){
+	if(mtoken.type == t_lparen){
+		nexttoken();
 		expression();
-		if(mtoken.tuto == t_rparen)
+		if(mtoken.type == t_rparen)
 			nexttoken();
 		else{						// loi thieu ')'
-			mtoken.tuto = t_error;
-			mtoken.value = 5;
-			error(5);
+			mtoken.type = t_error;
+			error("thieu dau )");
 		}
 	} else{
-			mtoken.tuto = t_error;
-			mtoken.value = 15;
-			error(15);				// loi khong phai factor()
+			mtoken.type = t_error;
+			error("loi factor");				// loi khong phai factor()
 		}
 };
 void term(){
 	factor();
-	while(mtoken.tuto == t_times || mtoken.tuto == t_slash){
+	while(mtoken.type == t_times || mtoken.type == t_slash || mtoken.type == t_div){
 		nexttoken();
 		factor();
 	}
@@ -345,325 +391,445 @@ void term(){
 
 void condition(){
 	expression();
-	switch(mtoken.tuto){
-	case t_equ : expression();break;
-	case t_gtr : expression();break;
-	case t_geq: expression(); break;
-	case t_les: expression(); break;
-	case t_leq: expression();break;
-	case t_neq : expression();break;
-	default : {
-		mtoken.tuto = t_error;
-				mtoken.value = 6;
-		error(6);			// thieu toan tu so sanh
-			  }
+	switch(mtoken.type){
+	case t_equ : nexttoken();
+		expression();break;
+	case t_gtr : nexttoken();
+		expression();break;
+	case t_geq: nexttoken();
+		expression(); break;
+	case t_les: nexttoken();
+		expression(); break;
+	case t_leq: nexttoken();
+		expression();break;
+	case t_neq : nexttoken();
+		
+		expression();break;
+	default : break;
 	}
-	nexttoken();
 };
 void statement(){
-	if(mtoken.tuto == t_ident){
+	if(mtoken.type == t_ident){
 		nexttoken();
-		if(mtoken.tuto == t_lbrave) {
+		if(mtoken.type == t_lbrave) {
 		nexttoken(); 
 		expression();
-		if(mtoken.tuto == t_rbrave) nexttoken();
+		if(mtoken.type == t_rbrave) 
+			nexttoken();
 		else {
-			mtoken.tuto = t_error;
+			mtoken.type = t_error;
 			mtoken.value = 4;
-			error(4);			// thieu dau ']'
+			error("statement thieu dau ]");					// thieu dau ']'
 		}			
 		}
-		if(mtoken.tuto == t_assign){
+		if(mtoken.type == t_assign){
 				nexttoken();
-				expression();		
+				condition();		
+				/////
+			if(mtoken.type == t_hoicham){
+				nexttoken();
+				expression();
+				if(mtoken.type == t_haicham){
+					nexttoken();
+					expression();
+					if(mtoken.type == t_semicolon){
+						nexttoken();
+					}else
+					{
+						error("thieu dau ;");		//thieu ;
+					}
+				}else
+				{
+					error("thieu dau :");		//thieu :
+				}
+			}
 			}else {
-				mtoken.tuto = t_error;
-				mtoken.value = 7;
-				error(7);	// thieu toan tu gan
+				mtoken.type = t_error;
+				error("statement thieu toan tu gan");				// thieu toan tu gan
 			}
 	} else
-		if(mtoken.tuto == t_call){
+		if(mtoken.type == t_call){
 			nexttoken();
-			if(mtoken.tuto == t_ident){ 
+			if(mtoken.type == t_ident){ 
 				nexttoken();
-				if(mtoken.tuto == t_lparen) 
-					do {
+				if(mtoken.type == t_lparen) {
+					nexttoken();
+					if(mtoken.type == t_rparen)
 						nexttoken();
+					else
+					{
 						expression();
+						while(mtoken.type == t_comma)
+						{nexttoken();
+						expression();
+						}
+						if(mtoken.type == t_rparen) nexttoken();
+						else {
+							mtoken.type = t_error;
+							error("thieu ) trong call");			//loi thieu ')'
+						}
 					}
-					while(mtoken.tuto == t_comma);
-					if(mtoken.tuto == t_rparen) nexttoken();
-					else {
-						mtoken.tuto = t_error;
-						mtoken.value = 5;
-						error(5);			//loi thieu ')'
-					}
+					
+				}
 			}else {
-				mtoken.tuto = t_error;
+				mtoken.type = t_error;
 				mtoken.value = 12;
-				error(12);			// loi ko phai call
+				error("loi cau lenh call");			// loi ko phai call
 			}
 		} else
-			if(mtoken.tuto == t_begin){
+			if(mtoken.type == t_begin){
 				nexttoken();
 				statement();
-				while(mtoken.tuto == t_semicolon){
+				while(mtoken.type == t_semicolon){
 					nexttoken();
 					statement();
 				}
-				if(mtoken.tuto == t_end)
+				if(mtoken.type == t_end)
 					nexttoken();
 				else {
-					mtoken.tuto = t_error;
-					mtoken.value = 7;
-					error(7);			// loi thieu end
+					mtoken.type = t_error;
+					error("thieu end");			// loi thieu end
 				}
 			}else 
-				if(mtoken.tuto == t_if){
+				if(mtoken.type == t_if){
 					nexttoken();
 					condition();
-					if(mtoken.tuto == t_then){
+					if(mtoken.type == t_then){
 						nexttoken();
 						statement();
-						if(mtoken.tuto == t_else){
+						if(mtoken.type == t_else){
 							nexttoken();
 							statement();
 						}
 					}else{
-						mtoken.tuto = t_error;
-						mtoken.value = 8;
-						error(8);			// thieu then
+						mtoken.type = t_error;
+						error("thieu Then trong cau lenh if");			// thieu then
 					}
 				} else 
-					if(mtoken.tuto == t_while){
+					if(mtoken.type == t_while){
 						nexttoken();
 						condition();
-						if(mtoken.tuto == t_do){
+						if(mtoken.type == t_do){
 							nexttoken();
 							statement();
 						} else {
-							mtoken.tuto = t_error;
-							mtoken.value = 9;
-							error(9);			// thieu do
+							mtoken.type = t_error;
+							error("thieu do trong vong lap while");			// thieu do
 						}
 					} else
-						if(mtoken.tuto == t_for){
+						if(mtoken.type == t_for){
 							nexttoken();
-							if(mtoken.tuto == t_ident){
+							if(mtoken.type == t_lparen){
 								nexttoken();
-								if(mtoken.tuto == t_assign){
+								if(mtoken.type == t_ident){
 									nexttoken();
-									expression();
-									if(mtoken.tuto == t_to){
+									if(mtoken.type == t_assign){
 										nexttoken();
 										expression();
-										if(mtoken.tuto == t_do){
+										if(mtoken.type == t_semicolon){
+											nexttoken();
+											condition();
+											if(mtoken.type == t_semicolon){
+												nexttoken();
+												if(mtoken.type == t_ident){
+													nexttoken();
+													if(mtoken.type == t_assign){
+														nexttoken();
+														expression();
+														if(mtoken.type == t_rparen){
+															nexttoken();
+															statement();
+														}else
+														{
+															error("thieu ) trong vong lap for");		//thieu ')'
+														}
+													}else
+													{
+														error("thieu toan tu gan trong vong lap for");
+													}
+												}else
+												{
+													error("thieu ident trong for");		//thieu ident
+												}
+											}else
+											{
+												error("thieu ; trong for");		//thieu dau ';' sau bt dk
+											}
+										}else
+										{
+											error("thieu ; trong for");			// thieu dau ';'
+										}
+									}else
+									{
+										error("thieu toan tu gan");		//thieu toan tu gan
+									}
+									
+
+								} else {
+									mtoken.type = t_error;
+									error("thieu ident trong for");					// thieu ident
+								}
+								
+							}else 
+								if (mtoken.type == t_ident){
+									nexttoken();
+								if(mtoken.type == t_assign){
+									nexttoken();
+									expression();
+									if(mtoken.type == t_to){
+										nexttoken();
+										expression();
+										if(mtoken.type == t_do){
 											nexttoken();
 											statement();
 										} else {
-											mtoken.tuto = t_error;
-											mtoken.value = 9;
-											error(9);		// thieu "do"
+											mtoken.type = t_error;
+											error("thieu do sau vong lap for");		// thieu "do"
 										}
 									}else {
-										mtoken.tuto = t_error;
-										mtoken.value = 10;
-										error(10);			// thieu "to"
+										mtoken.type = t_error;
+										error("thieu to trong for");			// thieu "to"
 									}
 								} else  {
-									mtoken.tuto = t_error;
-									mtoken.value = 3;
-									error(3);			// thieu toan tu gan'
+									mtoken.type = t_error;
+									error("thieu toan tu gan trong for");			// thieu toan tu gan'
 								}
 							} else {
-								mtoken.tuto = t_error;
-								mtoken.value = 11;
-								error(11);					// thieu ident
+								mtoken.type = t_error;
+								error("thieu ident trong for");					// thieu ident
 							}
 						}
  // end statement
-}
+};
 void block(){
-	if(mtoken.tuto == t_const){
-		nexttoken();
+	if(mtoken.type == t_const){
+		
 		do{
-			if(mtoken.tuto == t_ident){
 			nexttoken();
-			if(mtoken.tuto == t_equ) nexttoken();
+			if(mtoken.type == t_ident){
+			// == them ptnn
+			if(CheckIdent(mtoken.name, itableNow) == true) {
+				error("Ten da ton tai");
+			} 
 			else {
-				mtoken.tuto == t_error;
-				error(6);				// loi thieu so sanh bang
-			} if (mtoken.tuto == t_number){
+				ItemSym *its = new ItemSym;
+				its->Name = string(mtoken.name);
+				its->Property = Constant;
+				AddItemToTable(its, itableNow);
+			}
+			// ===
+			nexttoken();
+			if(mtoken.type == t_equ) nexttoken();
+			else {
+				mtoken.type = t_error;
+				error("thieu dau = trong const");				// loi thieu so sanh bang
+			} if (mtoken.type == t_number){
 				nexttoken();
 				}
 			}
 			else {
-			mtoken.tuto = t_error;
+			mtoken.type = t_error;
 			mtoken.value = 11;
-			error(11);						// thieu ident
+			error("thieu ident trong const");						// thieu ident
 		}
-		} while(mtoken.tuto == t_comma);
-		if(mtoken.tuto == t_semicolon){
+		} while(mtoken.type == t_comma);
+		if(mtoken.type == t_semicolon){
 			nexttoken();
 		} else {
-			mtoken.tuto = t_error;
-			error(13);							// thieu dau ';'
+			mtoken.type = t_error;
+			error("thieu dau ; trong const");							// thieu dau ';'
 		}	
 	}
-	if(mtoken.tuto == t_var){
-		//nexttoken();
+	if(mtoken.type == t_var){
 		do{
 			nexttoken();
-			if(mtoken.tuto == t_ident){
+			if(mtoken.type == t_ident){
+				// == them ptnn 
+				if(CheckIdent(mtoken.name,itableNow) == true){
+					error("ten bien da ton tai");
+				}else
+				{
+					ItemSym *its = new ItemSym;
+					its->Name = string(mtoken.name);
+					its->Property = Variable;
+					AddItemToTable(its,itableNow);
+				}
+				// ===end ptnn
 				nexttoken();
-				if(mtoken.tuto == t_lbrave){
+				if(mtoken.type == t_lbrave){
 					nexttoken();
-					if(mtoken.tuto == t_number){
+					if(mtoken.type == t_number){
 						nexttoken();
 					} else {					// thieu number
-						mtoken.tuto = t_error;
-						mtoken.value = 14;
-						error(14);
+						mtoken.type = t_error;
+						error("thieu number trong khai bao bien");
 					}
-					if(mtoken.tuto == t_rbrave) nexttoken();
+					if(mtoken.type == t_rbrave) {
+						itableNow->ListItem[itableNow->Tx - 1]->Property = Array;
+						nexttoken();
+					}
 					else {						// thieu dau ']'
-						mtoken.tuto = t_error;
-						mtoken.value = 4;
-						error(4);				
+						mtoken.type = t_error;
+						error("thieu dau ] trong khai bao bien");				
 					}
 				}
 			}else {								// thieu ident
-				mtoken.tuto = t_error;
-				mtoken.value = 11;
-				error(11);						
+				mtoken.type = t_error;
+				error("thieu ident trong khai bao bien");						
 			}
-		}while(mtoken.tuto == t_comma);
-		if(mtoken.tuto == t_semicolon)
+		}while(mtoken.type == t_comma);
+		if(mtoken.type == t_semicolon)
 			nexttoken();
 		else {
-			mtoken.tuto = t_error;
-			mtoken.value = 13;
-			error(13);							// thieu dau ';'
+			mtoken.type = t_error;
+			error("thieu ; sau khi khai bao bien");				// thieu dau ';'
 		}	
 	}
-	while(mtoken.tuto == t_procedure){
+	while(mtoken.type == t_procedure){
 		nexttoken();
-		if(mtoken.tuto == t_ident){
+		if(mtoken.type == t_ident){
+			//them ptnn
+			if(CheckProcedure(string(mtoken.name), itableNow) == true){
+				error("da ton tai ten procedure");
+			}else
+			{
+				ItemSym *its = new ItemSym;
+				its->Name = string(mtoken.name);
+				cout<<its->Name;
+				its->Property = SubProc;
+
+				AddItemToTable(its,itableNow);
+				itableNow = CreateTable();
+			}
+			//cout<<index<<endl;
+			//end ptnn
 			nexttoken();
-			if(mtoken.tuto == t_lparen){
-				nexttoken();
+			if(mtoken.type == t_lparen){
 				do{
-					if(mtoken.tuto == t_var){
+					nexttoken();
+					if(mtoken.type == t_var)
 						nexttoken();
-						if(mtoken.tuto == t_ident){
+						if(mtoken.type == t_ident){
+							//==them ptnn
+							if(CheckIdent(mtoken.name,itableNow) == true){
+								error("ten bien da ton tai");
+							}else
+							{
+								ItemSym *its = new ItemSym;
+								its->Name = string(mtoken.name);
+								its->Property = Variable;
+								AddItemToTable(its,itableNow);
+							}
+							//==end ptnn
 							nexttoken();
 						}else{					//thieu ident
-							mtoken.tuto = t_error;
+							mtoken.type = t_error;
 							mtoken.value = 11;
-							error(11);
+							error("thieu ten bien trong procedure");
 						}
-					}
-				}while(mtoken.tuto == t_semicolon);
-				if(mtoken.tuto == t_rparen){
+				}while(mtoken.type == t_semicolon);
+				if(mtoken.type == t_rparen){
 					nexttoken();
-					if(mtoken.tuto == t_semicolon){
+					if(mtoken.type == t_semicolon){
 						nexttoken();
 						block();
-						if(mtoken.tuto == t_semicolon){
-							nexttoken();
-						}else					// thieu ';'
-						{
-							mtoken.tuto = t_error;
-							mtoken.value = 13;
-							error(13);
-						}
 					}else						// thieu ';'
 					{
-						mtoken.tuto = t_error;
-						mtoken.value = 13;
-						error(13);
+						mtoken.type = t_error;
+						error("thieu ; sau khai bao ham");
 					}
 				}else
 				{								//thieu ')'
-					mtoken.tuto = t_error;
-					mtoken.value = 5;
-					error(5);
+					mtoken.type = t_error;
+					error("thieu ) trong khai bao ham");
 				}
-			}else
+			}else								
 			{
-
+				if(mtoken.type == t_semicolon){
+					nexttoken();
+					block();
+				}
 			}
 		}else{									//thieu ident
-			mtoken.tuto = t_error;
-			mtoken.value = 11;
-			error(11);	
+			mtoken.type = t_error;
+			error("thieu ten ham");	
 		}
 	}
-	if(mtoken.tuto == t_begin){
+	if(mtoken.type == t_begin){
 		nexttoken();
 		statement();
-		while(mtoken.tuto == t_semicolon){
+		while(mtoken.type == t_semicolon){
 			nexttoken();
 			statement();
 		}
-		if(mtoken.tuto == t_end){
+		if(mtoken.type == t_end){
+			//==them ptnn
+			itableNow = itableNow->PtrParent;	//ket thuc procedure thi tro lai bang cha
+			//==them ptnn
 			nexttoken();
+			if(mtoken.type == t_semicolon)
+				nexttoken();
 		}else									// thieu end
 		{
-			mtoken.tuto = t_error;
-			mtoken.value = 7;
-			error(7);
+			mtoken.type = t_error;
+			error("thieu end");
 		}
 	}else{
-		mtoken.tuto = t_error;
+		mtoken.type = t_error;
 		mtoken.value = 12;
-		error(12);								// loi block
+		error("loi block");								// loi block
 	}
 };
 void program(){
-	if(mtoken.tuto == t_program){
+	if(mtoken.type == t_program){
 		nexttoken();
-		if(mtoken.tuto == t_ident){
+		if(mtoken.type == t_ident){
+			// == them ptnn
+				itableNow = InitItemTable();
+				//cout<<index<<endl;
+				// ===
 			nexttoken();
-			if(mtoken.tuto == t_semicolon){
+			if(mtoken.type == t_semicolon){
+
+				
+
 				nexttoken();
 				block();
-				if(mtoken.tuto == t_period){
+				if(mtoken.type == t_period){
 					cout<<"Thanh Cong"<<endl;
-					mtoken.tuto = t_eof;
+					mtoken.type = t_eof;
 				}else							// loi thieu dau '.' ket thuc ctrinh
 				{
-					mtoken.tuto = t_error;
-					mtoken.value = 17;
-					error(17);
+					mtoken.type = t_error;
+					error("thieu dau . ket thuc ctrinh");
 				}
 			}else								// loi thieu dau ';' sau ten chuong trinh
 			{
-				mtoken.tuto = t_error;
-				mtoken.value = 13;
-				error(13);
+				mtoken.type = t_error;
+				error("thieu ; sau ten chuong trinh");
 			}
 		}else									// loi thieu ten chuong trinh
 		{
-			mtoken.tuto = t_error;
-			mtoken.value = 18;
-			error(18);
+			mtoken.type = t_error;
+			error("thieu ten chuong trinh");
 		}
 	}else										// loi thieu tu khoa program
 	{
-		mtoken.tuto = t_error;
+		mtoken.type = t_error;
 		mtoken.value = 19;
-		error(19);
+		error("thieu tu khoa program");
 	}
 };
+///***************************end phan tich cu phap*************************
 
 int main(){
 	//char url[50];
 	//cout<<"Nhap duong dan file: ";
 	//gets_s(url);
-	fopen_s(&f, "d:/test.pl0","r");
+	fflush(stdin);
+	fopen_s(&f, "d:/aaaa/a5.pl0","r");
 	if(f==NULL) cout<<"khong the mo file";
-	else while(mtoken.tuto != t_error && mtoken.tuto != t_eof){
+	else while(mtoken.type != t_error && mtoken.type != t_eof){
 		nexttoken();
 		program();
 	}
